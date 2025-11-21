@@ -1,0 +1,37 @@
+const { User } = require("../models");
+
+const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName, username, email, role } = req.body;
+
+    const userToUpdate = await User.findByPk(id);
+    if (!userToUpdate) {
+      return res.status(404).json({ message: "Korisnik nije pronađen" });
+    }
+
+    if (req.user.role === "basic" && req.user.id !== userToUpdate.id) {
+      return res.status(403).json({ message: "Nemate pristup za menjanje ovog korisnika" });
+    }
+
+    const updatedData = {
+      firstName,
+      lastName,
+      username,
+      email
+    };
+
+    if (req.user.role === "admin" && role) {
+      updatedData.role = role;
+    }
+
+    await userToUpdate.update(updatedData);
+
+    res.status(200).json({ message: "Korisnik uspešno ažuriran", user: userToUpdate });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Greška na serveru" });
+  }
+};
+
+module.exports = updateUser;

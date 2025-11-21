@@ -1,0 +1,31 @@
+const { Task, User } = require("../models");
+const bcrypt = require("bcrypt");
+const saltRounds = 10; 
+
+const registerUser = async (req, res) => {
+  const { firstName, lastName, username, email, password, role } = req.body;
+    try {
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(409).json({ message: "Korisnik sa tim email-om vec postoji" });
+        }
+        const existingUsername = await User.findOne({ where: { username } });
+        if (existingUsername) {
+            return res.status(409).json({ message: "Korisnicko ime je zauzeto" });
+        }
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const newUser = await User.create({
+            firstName,
+            lastName,
+            username,
+            email,
+            password: hashedPassword,
+            role
+        });
+        res.status(201).json({ message: "Korisnik uspesno registrovan" });
+    } catch (error) {
+        res.status(500).json({ message: "Greska na serveru" });
+    }
+};
+
+module.exports = registerUser;

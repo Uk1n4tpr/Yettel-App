@@ -1,0 +1,25 @@
+const { Task, User } = require("../models");
+
+const updateTask = async (req, res) => {
+  const { id } = req.params;
+  const { body } = req.body;
+
+  try {
+    const task = await Task.findByPk(id);
+    if (!task) return res.status(404).json({ message: "Task ne postoji" });
+
+    if (req.user.role === "basic" && task.UserId !== req.user.id) {
+      return res.status(403).json({ message: "Nemate pristup za menjanje ovog taska" });
+    }
+
+    task.body = body;
+    await task.save();
+
+    res.status(200).json({ message: "Task uspesno azuriran", task });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Greska na serveru" });
+  }
+};
+
+module.exports = updateTask;

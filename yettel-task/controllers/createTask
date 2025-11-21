@@ -1,0 +1,23 @@
+const { Task } = require("../models");
+
+const createTask = async (req, res) => {
+  const { body } = req.body;
+
+  try {
+    if (req.user.role !== "basic") {
+      return res.status(403).json({ message: "Samo basic korisnici mogu kreirati zadatke" });
+    }
+
+    const newTask = await Task.create({
+      body,
+      UserId: req.user.id
+    });
+
+    res.status(201).json({ message: "Zadatak uspesno kreiran", task: newTask });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Greska na serveru" });
+  }
+};
+
+module.exports = createTask;
